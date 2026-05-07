@@ -1,0 +1,21 @@
+server:
+  port: 8081
+
+node:
+  id: 1
+  url: http://localhost:8081
+
+cluster:
+  peers: http://localhost:8082,http://localhost:8083
+  replication-token: dev-replication-token
+
+clock:
+  skew-seconds: 0
+
+spring:
+  datasource:
+    url: jdbc:sqlite:data/customer-node1.db
+
+logging:
+  level:
+    com.example.distributed_last_write_wins: INFO

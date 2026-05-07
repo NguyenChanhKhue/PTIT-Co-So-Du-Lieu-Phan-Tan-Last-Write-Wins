@@ -1,0 +1,23 @@
+server:
+  port: 8082
+
+node:
+  id: 2
+  url: http://localhost:8082
+
+cluster:
+  peers: http://localhost:8081,http://localhost:8083
+  replication-token: dev-replication-token
+
+# CLOCK SKEW: +30 seconds (FASTER than real time)
+# This node's clock is 30 seconds ahead
+clock:
+  skew-seconds: 30
+
+spring:
+  datasource:
+    url: jdbc:sqlite:data/customer-node2.db
+
+logging:
+  level:
+    com.example.distributed_last_write_wins: INFO
