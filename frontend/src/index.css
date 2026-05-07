@@ -1,0 +1,97 @@
+:root {
+  font-family:
+    "Segoe UI", "Trebuchet MS", "Gill Sans", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #28434b;
+  background:
+    radial-gradient(circle at top left, #fff6dc 0%, transparent 28%),
+    radial-gradient(circle at top right, #d2eef1 0%, transparent 24%),
+    linear-gradient(180deg, #f8f4eb 0%, #eef6f4 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --panel-bg: rgba(255, 255, 255, 0.78);
+  --card-soft: rgba(255, 255, 255, 0.72);
+  --card-border: rgba(31, 72, 82, 0.12);
+  --input-border: rgba(31, 72, 82, 0.18);
+  --input-bg: rgba(255, 255, 255, 0.86);
+  --panel-shadow: 0 18px 50px rgba(24, 55, 64, 0.12);
+  --strong-text: #16323a;
+  --muted-text: #57737b;
+  --accent-text: #0d697f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 84%);
+}
+
+#root {
+  width: min(1400px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 28px 0 40px;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--strong-text);
+  font-family:
+    "Segoe UI Semibold", "Trebuchet MS", sans-serif;
+}
+
+h1 {
+  font-size: clamp(2.6rem, 4vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 2vw, 1.9rem);
+  line-height: 1.1;
+}
+
+h3 {
+  font-size: 1.06rem;
+}
+
+code {
+  font-family: "Cascadia Code", "Consolas", monospace;
+}
+
+@media (max-width: 720px) {
+  #root {
+    width: min(100% - 18px, 1400px);
+    padding: 16px 0 24px;
+  }
+}
