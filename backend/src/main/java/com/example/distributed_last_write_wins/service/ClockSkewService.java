@@ -35,7 +35,7 @@ public class ClockSkewService {
     } else if (skewSeconds < 0) {
       return "Slow (" + skewSeconds + " seconds)";
     } else {
-      return "Normal (accurate)";
+      return "Normal";
     }
   }
 
@@ -44,10 +44,10 @@ public class ClockSkewService {
    */
   public String getDangerWarning() {
     if (Math.abs(skewSeconds) > 10) {
-      return " HIGH RISK: Updates may be incorrectly discarded!";
+      return " HIGH RISK: Updates may be incorrectly discarded";
     } else if (Math.abs(skewSeconds) > 0) {
       return " Clock skew detected: LWW may produce incorrect results";
     }
-    return "✓ Clock is synchronized";
+    return " Clock is synchronized";
   }
 }
