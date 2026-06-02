@@ -9,10 +9,10 @@ cluster:
   peers: http://localhost:8081,http://localhost:8083
   replication-token: dev-replication-token
 
-# CLOCK SKEW: +30 seconds (FASTER than real time)
-# This node's clock is 30 seconds ahead
+# CLOCK SKEW: +120 seconds (FASTER than real time)
+# This node's clock is 120 seconds ahead
 clock:
-  skew-seconds: 30
+  skew-seconds: 120
 
 spring:
   datasource:
@@ -21,3 +21,13 @@ spring:
 logging:
   level:
     com.example.distributed_last_write_wins: INFO
+
+# Enable actuator shutdown for demo control
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,shutdown
+  endpoint:
+    shutdown:
+      enabled: true

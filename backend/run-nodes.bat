@@ -41,8 +41,8 @@ timeout /t 2 /nobreak > nul
 echo.
 echo ========================================
 echo Starting Node 2 (Port 8082)
-echo Clock: FAST (+30 seconds skew)
-echo WARNING: This node thinks it is 30 seconds in the future!
+echo Clock: FAST (+120 seconds skew)
+echo WARNING: This node thinks it is 120 seconds in the future!
 echo ========================================
 start "Node2-Fast" java -jar "%JAR_NAME%" --spring.config.additional-location=src/main/resources/config/application-node2.yml
 
@@ -51,8 +51,8 @@ timeout /t 2 /nobreak > nul
 echo.
 echo ========================================
 echo Starting Node 3 (Port 8083)
-echo Clock: SLOW (-15 seconds skew)
-echo WARNING: This node thinks it is 15 seconds in the past!
+echo Clock: SLOW (-120 seconds skew)
+echo WARNING: This node thinks it is 120 seconds in the past!
 echo ========================================
 start "Node3-Slow" java -jar "%JAR_NAME%" --spring.config.additional-location=src/main/resources/config/application-node3.yml
 
