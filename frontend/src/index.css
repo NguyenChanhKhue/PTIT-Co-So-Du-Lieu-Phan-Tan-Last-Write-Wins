@@ -1,6 +1,5 @@
 :root {
-  font-family:
-    "Segoe UI", "Trebuchet MS", "Gill Sans", sans-serif;
+  font-family: "Segoe UI", "Trebuchet MS", "Gill Sans", sans-serif;
   line-height: 1.5;
   font-weight: 400;
   color: #28434b;
@@ -38,7 +37,7 @@ body {
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -66,8 +65,11 @@ h1,
 h2,
 h3 {
   color: var(--strong-text);
-  font-family:
-    "Segoe UI Semibold", "Trebuchet MS", sans-serif;
+  font-family: "Segoe UI Semibold", "Trebuchet MS", sans-serif;
+}
+
+.app-shell .hero-panel .hero-copy h1 {
+  color: #fff;
 }
 
 h1 {

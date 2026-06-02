@@ -1,51 +1,75 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from "react";
+import "./App.css";
 
 const NODE_CONFIG = [
-  { id: '1', name: 'Node 1', label: 'Normal Clock', port: 8081, tone: 'node-normal' },
-  { id: '2', name: 'Node 2', label: 'Fast Clock', port: 8082, tone: 'node-fast' },
-  { id: '3', name: 'Node 3', label: 'Slow Clock', port: 8083, tone: 'node-slow' },
-]
+  {
+    id: "1",
+    name: "Node 1",
+    label: "Normal Clock",
+    port: 8081,
+    tone: "node-normal",
+  },
+  {
+    id: "2",
+    name: "Node 2",
+    label: "Fast Clock",
+    port: 8082,
+    tone: "node-fast",
+  },
+  {
+    id: "3",
+    name: "Node 3",
+    label: "Slow Clock",
+    port: 8083,
+    tone: "node-slow",
+  },
+];
 
 const initialForm = {
-  cid: 'DEMO1',
-  address: 'Initial address from fast node',
-  phone: '2222',
-}
+  cid: "DEMO1",
+  address: "Initial address from fast node",
+  phone: "2222",
+};
 
 const initialComparison = NODE_CONFIG.map((node) => ({
   nodeId: node.id,
-  status: 'idle',
+  status: "idle",
   customer: null,
   error: null,
-}))
+}));
 
-const normalizeText = (value) => value ?? ''
+const normalizeText = (value) => value ?? "";
 
 const didWriteApply = (result, payload, targetNodeId) =>
   result?.cid === payload.cid &&
   normalizeText(result?.address) === normalizeText(payload.address) &&
   normalizeText(result?.phone) === normalizeText(payload.phone) &&
-  result?.lastUpdatedByNode === targetNodeId
+  result?.lastUpdatedByNode === targetNodeId;
 
 function App() {
   const [nodes, setNodes] = useState(
-    NODE_CONFIG.map((node) => ({ ...node, status: 'loading', info: null, error: null })),
-  )
-  const [selectedNode, setSelectedNode] = useState('2')
-  const [form, setForm] = useState(initialForm)
-  const [comparison, setComparison] = useState(initialComparison)
+    NODE_CONFIG.map((node) => ({
+      ...node,
+      status: "loading",
+      info: null,
+      error: null,
+    })),
+  );
+  const [selectedNode, setSelectedNode] = useState("2");
+  const [form, setForm] = useState(initialForm);
+  const [comparison, setComparison] = useState(initialComparison);
   const [activityLog, setActivityLog] = useState([
     {
       id: crypto.randomUUID(),
-      type: 'system',
-      title: 'Dashboard ready',
-      detail: 'Use the controls below to write into one node and watch replication across the cluster.',
+      type: "system",
+      title: "Dashboard ready",
+      detail:
+        "Use the controls below to write into one node and watch replication across the cluster.",
       timestamp: new Date().toLocaleTimeString(),
     },
-  ])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  ]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const appendLog = (type, title, detail) => {
     setActivityLog((current) => [
@@ -57,60 +81,70 @@ function App() {
         timestamp: new Date().toLocaleTimeString(),
       },
       ...current,
-    ])
-  }
+    ]);
+  };
 
   const fetchNodeInfo = async (node) => {
-    const response = await fetch(`http://localhost:${node.port}/api/node/info`)
+    const response = await fetch(`http://localhost:${node.port}/api/node/info`);
     if (!response.ok) {
-      throw new Error(`Node ${node.id} returned ${response.status}`)
+      throw new Error(`Node ${node.id} returned ${response.status}`);
     }
-    return response.json()
-  }
+    return response.json();
+  };
 
   const loadNodes = async () => {
-    setIsRefreshing(true)
+    setIsRefreshing(true);
 
     const settled = await Promise.allSettled(
       NODE_CONFIG.map(async (node) => ({
         node,
         info: await fetchNodeInfo(node),
       })),
-    )
+    );
 
     setNodes(
       settled.map((result, index) => {
-        const node = NODE_CONFIG[index]
-        if (result.status === 'fulfilled') {
-          return { ...node, status: 'online', info: result.value.info, error: null }
+        const node = NODE_CONFIG[index];
+        if (result.status === "fulfilled") {
+          return {
+            ...node,
+            status: "online",
+            info: result.value.info,
+            error: null,
+          };
         }
         return {
           ...node,
-          status: 'offline',
+          status: "offline",
           info: null,
-          error: result.reason instanceof Error ? result.reason.message : 'Unable to connect',
-        }
+          error:
+            result.reason instanceof Error
+              ? result.reason.message
+              : "Unable to connect",
+        };
       }),
-    )
+    );
 
-    setIsRefreshing(false)
-  }
+    setIsRefreshing(false);
+  };
 
   const fetchCustomerForNode = async (node, cid) => {
-    const response = await fetch(`http://localhost:${node.port}/api/customer/${encodeURIComponent(cid)}`)
+    const response = await fetch(
+      `http://localhost:${node.port}/api/customer/${encodeURIComponent(cid)}`,
+    );
     if (response.status === 404) {
-      return null
+      return null;
     }
     if (!response.ok) {
-      throw new Error(`Node ${node.id} returned ${response.status}`)
+      throw new Error(`Node ${node.id} returned ${response.status}`);
     }
-    return response.json()
-  }
+    return response.json();
+  };
 
   const refreshCustomerView = async (cid) => {
     if (!cid.trim()) {
-      setComparison(initialComparison)
-      return
+      setComparison(initialComparison);
+      return;
     }
 
     const settled = await Promise.allSettled(
@@ -118,226 +152,256 @@ function App() {
         nodeId: node.id,
         customer: await fetchCustomerForNode(node, cid),
       })),
-    )
+    );
 
     setComparison(
       settled.map((result, index) => {
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           return {
             nodeId: NODE_CONFIG[index].id,
-            status: result.value.customer ? 'found' : 'missing',
+            status: result.value.customer ? "found" : "missing",
             customer: result.value.customer,
             error: null,
-          }
+          };
         }
         return {
           nodeId: NODE_CONFIG[index].id,
-          status: 'error',
+          status: "error",
           customer: null,
-          error: result.reason instanceof Error ? result.reason.message : 'Unknown error',
-        }
+          error:
+            result.reason instanceof Error
+              ? result.reason.message
+              : "Unknown error",
+        };
       }),
-    )
-  }
+    );
+  };
 
   useEffect(() => {
-    void loadNodes()
-    void refreshCustomerView(initialForm.cid)
+    void loadNodes();
+    void refreshCustomerView(initialForm.cid);
 
     const timer = window.setInterval(() => {
-      void loadNodes()
-    }, 8000)
+      void loadNodes();
+    }, 8000);
 
-    return () => window.clearInterval(timer)
-  }, [])
+    return () => window.clearInterval(timer);
+  }, []);
 
   const handleFormChange = (event) => {
-    const { name, value } = event.target
-    setForm((current) => ({ ...current, [name]: value }))
-  }
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+  };
 
   const writeCustomer = async (targetNodeId, payload, title) => {
-    const node = NODE_CONFIG.find((item) => item.id === targetNodeId)
+    const node = NODE_CONFIG.find((item) => item.id === targetNodeId);
     if (!node) {
-      return
+      return;
     }
 
     const response = await fetch(`http://localhost:${node.port}/api/customer`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-    })
+    });
 
     if (!response.ok) {
-      throw new Error(`Write to Node ${targetNodeId} failed with ${response.status}`)
+      throw new Error(
+        `Write to Node ${targetNodeId} failed with ${response.status}`,
+      );
     }
 
-    const result = await response.json()
-    const applied = didWriteApply(result, payload, targetNodeId)
+    const result = await response.json();
+    const applied = didWriteApply(result, payload, targetNodeId);
 
     appendLog(
-      applied ? 'write' : 'warning',
+      applied ? "write" : "warning",
       title,
       applied
         ? `${node.name} applied CID ${result.cid} at ${result.updateTimestampReadable}. This value should replicate as the current winner.`
-        : `${node.name} received the request for CID ${payload.cid}, but LWW kept ${result.lastUpdatedByNode || 'another node'} as winner at ${result.updateTimestampReadable}.`,
-    )
+        : `${node.name} received the request for CID ${payload.cid}, but LWW kept ${result.lastUpdatedByNode || "another node"} as winner at ${result.updateTimestampReadable}.`,
+    );
 
-    return { result, applied }
-  }
+    return { result, applied };
+  };
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
-    setIsSubmitting(true)
+    event.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      await writeCustomer(selectedNode, form, `Manual write on Node ${selectedNode}`)
-      await Promise.all([loadNodes(), refreshCustomerView(form.cid)])
+      await writeCustomer(
+        selectedNode,
+        form,
+        `Manual write on Node ${selectedNode}`,
+      );
+      await Promise.all([loadNodes(), refreshCustomerView(form.cid)]);
     } catch (error) {
       appendLog(
-        'error',
-        'Write failed',
-        error instanceof Error ? error.message : 'Unexpected error while writing customer data.',
-      )
+        "error",
+        "Write failed",
+        error instanceof Error
+          ? error.message
+          : "Unexpected error while writing customer data.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const clearCluster = async () => {
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       await Promise.all(
         NODE_CONFIG.map(async (node) => {
-          await fetch(`http://localhost:${node.port}/api/customers`, { method: 'DELETE' })
+          await fetch(`http://localhost:${node.port}/api/customers`, {
+            method: "DELETE",
+          });
         }),
-      )
-      appendLog('system', 'Cluster reset', 'All three node databases were cleared for a fresh demo run.')
-      await Promise.all([loadNodes(), refreshCustomerView(form.cid)])
+      );
+      appendLog(
+        "system",
+        "Cluster reset",
+        "All three node databases were cleared for a fresh demo run.",
+      );
+      await Promise.all([loadNodes(), refreshCustomerView(form.cid)]);
     } catch (error) {
       appendLog(
-        'error',
-        'Reset failed',
-        error instanceof Error ? error.message : 'Unable to clear one or more node databases.',
-      )
+        "error",
+        "Reset failed",
+        error instanceof Error
+          ? error.message
+          : "Unable to clear one or more node databases.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const runFastClockScenario = async () => {
-    setIsSubmitting(true)
-    const cid = 'CLOCK_FAST'
+    setIsSubmitting(true);
+    const cid = "CLOCK_FAST";
     try {
       setForm({
         cid,
-        address: 'Fast node writes first',
-        phone: '2222',
-      })
+        address: "Fast node writes first",
+        phone: "2222",
+      });
       await Promise.all(
         NODE_CONFIG.map(async (node) => {
-          await fetch(`http://localhost:${node.port}/api/customers`, { method: 'DELETE' })
+          await fetch(`http://localhost:${node.port}/api/customers`, {
+            method: "DELETE",
+          });
         }),
-      )
+      );
 
       const firstWrite = await writeCustomer(
-        '2',
-        { cid, address: 'Fast node writes first', phone: '2222' },
-        'Scenario step 1: Node 2 writes first',
-      )
+        "2",
+        { cid, address: "Fast node writes first", phone: "2222" },
+        "Scenario step 1: Node 2 writes first",
+      );
 
-      await new Promise((resolve) => window.setTimeout(resolve, 1000))
+      await new Promise((resolve) => window.setTimeout(resolve, 1000));
 
       const secondWrite = await writeCustomer(
-        '1',
-        { cid, address: 'Normal node writes later', phone: '1111' },
-        'Scenario step 2: Node 1 writes later',
-      )
+        "1",
+        { cid, address: "Normal node writes later", phone: "1111" },
+        "Scenario step 2: Node 1 writes later",
+      );
 
-      await Promise.all([loadNodes(), refreshCustomerView(cid)])
+      await Promise.all([loadNodes(), refreshCustomerView(cid)]);
       appendLog(
-        secondWrite?.applied ? 'error' : 'warning',
-        'Expected clock skew conflict',
+        secondWrite?.applied ? "error" : "warning",
+        "Expected clock skew conflict",
         secondWrite?.applied
-          ? 'Node 1 unexpectedly won in this run. That means the fast-clock conflict was not reproduced.'
-          : `Node 2 kept the winning value from ${firstWrite?.result?.updateTimestampReadable || 'its earlier write'}, showing that a later real-time write can still lose under LWW when another node clock is fast.`,
-      )
+          ? "Node 1 unexpectedly won in this run. That means the fast-clock conflict was not reproduced."
+          : `Node 2 kept the winning value from ${firstWrite?.result?.updateTimestampReadable || "its earlier write"}, showing that a later real-time write can still lose under LWW when another node clock is fast.`,
+      );
     } catch (error) {
       appendLog(
-        'error',
-        'Scenario failed',
-        error instanceof Error ? error.message : 'Unable to run the fast-clock scenario.',
-      )
+        "error",
+        "Scenario failed",
+        error instanceof Error
+          ? error.message
+          : "Unable to run the fast-clock scenario.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const runSlowClockScenario = async () => {
-    setIsSubmitting(true)
-    const cid = 'CLOCK_SLOW'
+    setIsSubmitting(true);
+    const cid = "CLOCK_SLOW";
     try {
       setForm({
         cid,
-        address: 'Normal node writes first',
-        phone: '1111',
-      })
+        address: "Normal node writes first",
+        phone: "1111",
+      });
       await Promise.all(
         NODE_CONFIG.map(async (node) => {
-          await fetch(`http://localhost:${node.port}/api/customers`, { method: 'DELETE' })
+          await fetch(`http://localhost:${node.port}/api/customers`, {
+            method: "DELETE",
+          });
         }),
-      )
+      );
 
       const firstWrite = await writeCustomer(
-        '1',
-        { cid, address: 'Normal node writes first', phone: '1111' },
-        'Scenario step 1: Node 1 writes first',
-      )
+        "1",
+        { cid, address: "Normal node writes first", phone: "1111" },
+        "Scenario step 1: Node 1 writes first",
+      );
 
-      await new Promise((resolve) => window.setTimeout(resolve, 1000))
+      await new Promise((resolve) => window.setTimeout(resolve, 1000));
 
       const secondWrite = await writeCustomer(
-        '3',
-        { cid, address: 'Slow node writes later', phone: '3333' },
-        'Scenario step 2: Node 3 writes later',
-      )
+        "3",
+        { cid, address: "Slow node writes later", phone: "3333" },
+        "Scenario step 2: Node 3 writes later",
+      );
 
-      await Promise.all([loadNodes(), refreshCustomerView(cid)])
+      await Promise.all([loadNodes(), refreshCustomerView(cid)]);
       appendLog(
-        secondWrite?.applied ? 'error' : 'warning',
-        'Expected slow-clock rejection',
+        secondWrite?.applied ? "error" : "warning",
+        "Expected slow-clock rejection",
         secondWrite?.applied
-          ? 'Node 3 unexpectedly won in this run. That means the slow-clock rejection was not reproduced.'
-          : `Node 1 kept the winning value from ${firstWrite?.result?.updateTimestampReadable || 'its earlier write'}, showing that a slow node can lose even when it writes later in real time.`,
-      )
+          ? "Node 3 unexpectedly won in this run. That means the slow-clock rejection was not reproduced."
+          : `Node 1 kept the winning value from ${firstWrite?.result?.updateTimestampReadable || "its earlier write"}, showing that a slow node can lose even when it writes later in real time.`,
+      );
     } catch (error) {
       appendLog(
-        'error',
-        'Scenario failed',
-        error instanceof Error ? error.message : 'Unable to run the slow-clock scenario.',
-      )
+        "error",
+        "Scenario failed",
+        error instanceof Error
+          ? error.message
+          : "Unable to run the slow-clock scenario.",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
-  const selectedNodeMeta = NODE_CONFIG.find((node) => node.id === selectedNode)
+  const selectedNodeMeta = NODE_CONFIG.find((node) => node.id === selectedNode);
 
   return (
     <div className="app-shell">
       <header className="hero-panel">
         <div className="hero-copy">
           <p className="eyebrow">Distributed Database Demo</p>
-          <h1>Last Write Wins under real clock skew</h1>
+          <h1>Last Write Wins</h1>
           <p className="hero-text">
-            This dashboard lets you write into any node, observe replication across three SQLite
-            databases, and demonstrate why LWW can pick the wrong winner when clocks diverge.
+            This dashboard lets you write into any node, observe replication
+            across three SQLite databases, and demonstrate why LWW can pick the
+            wrong winner when clocks diverge.
           </p>
         </div>
         <div className="hero-metrics">
           <div className="metric-card">
             <span>Cluster state</span>
-            <strong>{nodes.filter((node) => node.status === 'online').length}/3 online</strong>
+            <strong>
+              {nodes.filter((node) => node.status === "online").length}/3 online
+            </strong>
           </div>
           <div className="metric-card">
             <span>Selected write target</span>
@@ -345,7 +409,7 @@ function App() {
           </div>
           <div className="metric-card">
             <span>Observed CID</span>
-            <strong>{form.cid || 'None'}</strong>
+            <strong>{form.cid || "None"}</strong>
           </div>
         </div>
       </header>
@@ -358,7 +422,9 @@ function App() {
                 <p className="node-name">{node.name}</p>
                 <h2>{node.label}</h2>
               </div>
-              <span className={`status-pill status-${node.status}`}>{node.status}</span>
+              <span className={`status-pill status-${node.status}`}>
+                {node.status}
+              </span>
             </div>
 
             {node.info ? (
@@ -389,7 +455,9 @@ function App() {
                 </div>
               </div>
             ) : (
-              <p className="node-error">{node.error || 'Waiting for backend response...'}</p>
+              <p className="node-error">
+                {node.error || "Waiting for backend response..."}
+              </p>
             )}
           </article>
         ))}
@@ -405,7 +473,10 @@ function App() {
           <form className="customer-form" onSubmit={handleSubmit}>
             <label>
               Target node
-              <select value={selectedNode} onChange={(event) => setSelectedNode(event.target.value)}>
+              <select
+                value={selectedNode}
+                onChange={(event) => setSelectedNode(event.target.value)}
+              >
                 {NODE_CONFIG.map((node) => (
                   <option key={node.id} value={node.id}>
                     {node.name} - {node.label}
@@ -416,7 +487,12 @@ function App() {
 
             <label>
               Customer ID
-              <input name="cid" value={form.cid} onChange={handleFormChange} placeholder="CID" />
+              <input
+                name="cid"
+                value={form.cid}
+                onChange={handleFormChange}
+                placeholder="CID"
+              />
             </label>
 
             <label>
@@ -441,7 +517,7 @@ function App() {
 
             <div className="button-row">
               <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Sending...' : 'Write Customer'}
+                {isSubmitting ? "Sending..." : "Write Customer"}
               </button>
               <button
                 type="button"
@@ -457,7 +533,7 @@ function App() {
                 disabled={isSubmitting}
                 onClick={() => void loadNodes()}
               >
-                {isRefreshing ? 'Refreshing...' : 'Refresh Nodes'}
+                {isRefreshing ? "Refreshing..." : "Refresh Nodes"}
               </button>
             </div>
           </form>
@@ -469,21 +545,35 @@ function App() {
             </div>
 
             <div className="scenario-actions">
-              <button type="button" disabled={isSubmitting} onClick={runFastClockScenario}>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={runFastClockScenario}
+              >
                 Demo Fast Clock Error
               </button>
-              <button type="button" disabled={isSubmitting} onClick={runSlowClockScenario}>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={runSlowClockScenario}
+              >
                 Demo Slow Clock Error
               </button>
-              <button type="button" className="ghost-button" disabled={isSubmitting} onClick={clearCluster}>
+              <button
+                type="button"
+                className="ghost-button"
+                disabled={isSubmitting}
+                onClick={clearCluster}
+              >
                 Clear Cluster
               </button>
             </div>
 
             <p className="scenario-note">
-              Fast clock scenario: Node 2 writes first, Node 1 writes later, but Node 2 may still
-              win. Slow clock scenario: Node 1 writes first, Node 3 writes later, but Node 1 may
-              still win because Node 3 carries an older timestamp.
+              Fast clock scenario: Node 2 writes first, Node 1 writes later, but
+              Node 2 may still win. Slow clock scenario: Node 1 writes first,
+              Node 3 writes later, but Node 1 may still win because Node 3
+              carries an older timestamp.
             </p>
           </div>
         </div>
@@ -496,9 +586,14 @@ function App() {
 
           <div className="comparison-grid">
             {comparison.map((entry) => {
-              const nodeMeta = NODE_CONFIG.find((node) => node.id === entry.nodeId)
+              const nodeMeta = NODE_CONFIG.find(
+                (node) => node.id === entry.nodeId,
+              );
               return (
-                <article key={entry.nodeId} className={`comparison-card ${nodeMeta?.tone || ''}`}>
+                <article
+                  key={entry.nodeId}
+                  className={`comparison-card ${nodeMeta?.tone || ""}`}
+                >
                   <div className="comparison-card__top">
                     <span>{nodeMeta?.name}</span>
                     <strong>{entry.status}</strong>
@@ -507,11 +602,11 @@ function App() {
                     <dl>
                       <div>
                         <dt>Address</dt>
-                        <dd>{entry.customer.address || '-'}</dd>
+                        <dd>{entry.customer.address || "-"}</dd>
                       </div>
                       <div>
                         <dt>Phone</dt>
-                        <dd>{entry.customer.phone || '-'}</dd>
+                        <dd>{entry.customer.phone || "-"}</dd>
                       </div>
                       <div>
                         <dt>Timestamp</dt>
@@ -519,11 +614,11 @@ function App() {
                       </div>
                       <div>
                         <dt>Readable time</dt>
-                        <dd>{entry.customer.updateTimestampReadable || '-'}</dd>
+                        <dd>{entry.customer.updateTimestampReadable || "-"}</dd>
                       </div>
                       <div>
                         <dt>Winner node</dt>
-                        <dd>{entry.customer.lastUpdatedByNode || '-'}</dd>
+                        <dd>{entry.customer.lastUpdatedByNode || "-"}</dd>
                       </div>
                       <div>
                         <dt>Version</dt>
@@ -532,13 +627,13 @@ function App() {
                     </dl>
                   ) : (
                     <p className="node-error">
-                      {entry.status === 'missing'
-                        ? 'Customer not found on this node yet.'
-                        : entry.error || 'No customer selected.'}
+                      {entry.status === "missing"
+                        ? "Customer not found on this node yet."
+                        : entry.error || "No customer selected."}
                     </p>
                   )}
                 </article>
-              )
+              );
             })}
           </div>
 
@@ -552,7 +647,10 @@ function App() {
 
             <div className="timeline-list">
               {activityLog.map((item) => (
-                <article className={`timeline-item timeline-${item.type}`} key={item.id}>
+                <article
+                  className={`timeline-item timeline-${item.type}`}
+                  key={item.id}
+                >
                   <div className="timeline-item__meta">
                     <strong>{item.title}</strong>
                     <span>{item.timestamp}</span>
@@ -565,7 +663,7 @@ function App() {
         </div>
       </section>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
