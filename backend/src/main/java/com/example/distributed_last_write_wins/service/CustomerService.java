@@ -23,8 +23,7 @@ public class CustomerService {
   private String nodeId;
 
   /**
-   * Create or update customer information using LWW
-   * This is the main method called by the API
+   * update + insert user
    */
   public CustomerInfo upsert(CustomerInfo customer) {
     // Add timestamp from this node's skewed clock
@@ -39,8 +38,7 @@ public class CustomerService {
    * Internal method for upsert with explicit timestamp control
    * 
    * @param customer      The customer data
-   * @param isReplication Whether this call comes from replication (to avoid
-   *                      loops)
+   * @param isReplication Set false ,tránh lặp vô hạn
    */
   public CustomerInfo upsertWithTimestamp(CustomerInfo customer, boolean isReplication) {
     String cid = customer.getCid();
@@ -68,7 +66,8 @@ public class CustomerService {
 
       // LWW: Compare timestamps - larger wins
       if (incomingWins) {
-        // Newer update - overwrite. If timestamps tie, use node id as a deterministic tie-breaker.
+        // Newer update - overwrite. If timestamps tie, use node id as a deterministic
+        // tie-breaker.
         existing.setAddress(customer.getAddress());
         existing.setPhone(customer.getPhone());
         existing.setUpdateTimestamp(incomingTimestamp);
@@ -81,8 +80,7 @@ public class CustomerService {
             cid, oldAddress, customer.getAddress(), oldPhone, customer.getPhone(),
             existingTimestamp, incomingTimestamp, incomingNode);
       } else {
-        // Older update - reject (this demonstrates clock skew problem).
-        result = existing;
+        result = existing; // không update
         log.warn("REJECTED (LWW loses): CID={}, Address={}, "
             + "IncomingTs={}, ExistingTs={}, IncomingNode={}, ExistingNode={}",
             cid, customer.getAddress(),

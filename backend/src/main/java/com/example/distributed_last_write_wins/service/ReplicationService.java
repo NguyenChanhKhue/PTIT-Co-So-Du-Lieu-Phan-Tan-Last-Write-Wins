@@ -35,15 +35,15 @@ public class ReplicationService {
   private String replicationToken;
 
   /**
-   * Replicate a customer record to all other nodes (Master-Master)
+   * Sao chép đến các bản sao khác (Master-Master)
    */
   public void replicateToOthers(CustomerInfo customer) {
     if (peerUrls == null || peerUrls.isEmpty()) {
-      log.warn("No peer URLs configured - replication disabled");
+      log.warn("No peer URLs configured - replication disabled"); // ném Log
       return;
     }
 
-    for (String peerUrl : peerUrls) {
+    for (String peerUrl : peerUrls) { // không tự gửi dữ liệu cho chính mình
       if (peerUrl.equals(myUrl)) {
         continue;
       }
@@ -51,17 +51,17 @@ public class ReplicationService {
       try {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("X-Replication-Token", replicationToken);
+        headers.set("X-Replication-Token", replicationToken); // chỉ có node trong cluster mới được gọi replicate
         HttpEntity<CustomerInfo> request = new HttpEntity<>(customer, headers);
 
         String replicateUrl = peerUrl + "/api/replicate";
-        restTemplate.postForObject(replicateUrl, request, Void.class);
+        restTemplate.postForObject(replicateUrl, request, Void.class); // gửi api
         log.info("Replicated customer CID={} to peer {}",
             customer.getCid(), peerUrl);
       } catch (Exception e) {
-        log.error("Failed to replicate CID={} to {}: {}",
+        log.error("Failed to replicate CID={} to {}: {}", // bắt lỗi node khác die
             customer.getCid(), peerUrl, e.getMessage());
-        // In production: add to retry queue
+
       }
     }
   }
@@ -76,6 +76,6 @@ public class ReplicationService {
         customer.getUpdateTimestamp(), customer.getLastUpdatedByNode());
 
     // Upsert without replicating back.
-    customerService.upsertWithTimestamp(customer, true);
+    customerService.upsertWithTimestamp(customer, true); // dùng LWW
   }
 }

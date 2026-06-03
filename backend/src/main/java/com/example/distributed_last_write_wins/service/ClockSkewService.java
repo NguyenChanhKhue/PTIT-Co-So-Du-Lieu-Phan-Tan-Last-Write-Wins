@@ -15,14 +15,14 @@ public class ClockSkewService {
   @Value("${clock.skew-seconds:0}")
   private long skewSeconds;
 
-  public long getCurrentTimestamp() {
+  public long getCurrentTimestamp() { // thời gian thực + lệch
     long skewedTime = System.currentTimeMillis() + (skewSeconds * 1000);
     log.debug("Clock: real={}, skew={}s, skewed={}",
         System.currentTimeMillis(), skewSeconds, skewedTime);
     return skewedTime;
   }
 
-  public long getRealTimestamp() {
+  public long getRealTimestamp() { // thời gian thực
     return System.currentTimeMillis();
   }
 
